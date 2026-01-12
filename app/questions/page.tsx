@@ -20,6 +20,9 @@ export default function QuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'answered' | 'unanswered'>('all');
+  const [newQuestionText, setNewQuestionText] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
 
   // Fetch questions on mount
   useEffect(() => {
@@ -38,6 +41,42 @@ export default function QuestionsPage() {
       console.error('Failed to fetch questions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newQuestionText.trim()) return;
+    try {
+      const res = await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: newQuestionText, studentName: newName, studentEmail: newEmail }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewQuestionText('');
+        setNewName('');
+        setNewEmail('');
+        fetchQuestions();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteQuestion = async (id: string) => {
+    if (!confirm('Delete this question?')) return;
+    try {
+      const res = await fetch('/api/questions', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (data.success) fetchQuestions();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -106,6 +145,32 @@ export default function QuestionsPage() {
             Unanswered ({questions.filter((q) => !q.isAnswered).length})
           </button>
         </div>
+
+        {/* Create Question Form */}
+        <form onSubmit={createQuestion} className="mb-6 space-y-3">
+          <textarea
+            value={newQuestionText}
+            onChange={(e) => setNewQuestionText(e.target.value)}
+            placeholder="Type your question here..."
+            className="w-full p-3 rounded border"
+            rows={3}
+          />
+          <div className="flex gap-3">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Your name (optional)"
+              className="p-2 rounded border flex-1"
+            />
+            <input
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="Your email (optional)"
+              className="p-2 rounded border flex-1"
+            />
+            <button className="bg-blue-600 text-white px-4 rounded">Ask</button>
+          </div>
+        </form>
 
         {/* Loading State */}
         {loading && (
@@ -195,6 +260,15 @@ export default function QuestionsPage() {
                         <p className="text-gray-800">{question.answer}</p>
                       </div>
                     )}
+                    {/* Actions */}
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={() => deleteQuestion(question.id)}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

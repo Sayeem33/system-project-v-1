@@ -9,7 +9,7 @@ export default function Footer() {
           © 2026 Interactive AI-Assisted Learning Platform for Science Education
         </p>
         <p className="text-xs text-gray-400 mt-2">
-          Week 1-2: Project Structure & System Design Foundation
+          Week 1-3: Project Structure & System Design Foundation
         </p>
       </div>
     </footer>
